@@ -4,7 +4,7 @@ This is an implementation of the IHeartRobotics Turtlebot Wanderer program that 
 '''
 
 import rospy
-from kobuki_msgs.msg import SensorState, Sound, BumperEvent
+from kobuki_msgs.msg import SensorState, Sound, BumperEvent, ButtonEvent
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
@@ -34,6 +34,7 @@ class wanderer:
         rospy.loginfo("Subscriber Starting")
         self.sub_scan = rospy.Subscriber('/scan', LaserScan, self.callback_laser)
         self.sub_bump = rospy.Subscriber('/mobile_base/events/bumper', BumperEvent, self.callback_bumper)
+        self.sub_button = rospy.Subscriber('/mobile_base/events/button', ButtonEvent, self.callback_button)
         self.pub_sound = rospy.Publisher('/mobile_base/commands/sound', Sound, queue_size=1)
 	self.pub_navi = rospy.Publisher('/cmd_vel_mux/input/navi',Twist,queue_size=1)
         rospy.spin()
@@ -108,6 +109,12 @@ class wanderer:
 
     def callback_bumper(self, msg):
         self.sort_bump(msg)
+
+    def callback_button(self, msg):
+        if msg.state:
+            self.stopped = True
+        else:
+            self.stopped = False
 
     def _callback(self,msg):
 	'''Passes laserscan onto function sort which gives the sect 
